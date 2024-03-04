@@ -1,0 +1,58 @@
+FUNCTION_BLOCK trafic
+
+VAR_INPUT				
+        trafico : REAL; RANGE := (0 .. 10);
+        presencia_peatones : REAL; RANGE := (0 .. 10);
+        distancia_semaforos : REAL; RANGE := (0 .. 10);
+END_VAR
+
+VAR_OUTPUT				
+        tiempo_luces_verdes : REAL; RANGE := (0 .. 20);
+        tiempo_entre_verdes : REAL; RANGE := (0 .. 20);
+END_VAR
+
+FUZZIFY servicio			
+        TERM pobre := gauss 0 1.5; 
+        TERM bueno := gauss 5 1.5;
+        TERM excelente := gauss 10 1.5;
+END_FUZZIFY
+
+FUZZIFY comida
+        TERM rancia := (0, 0) (0, 1) (3, 1) (7, 0);
+        TERM deliciosa := (3, 0) (7, 1) (10, 1) (10, 0);
+END_FUZZIFY
+
+DEFUZZIFY tiempo_luces_verdes			
+        TERM corto := trape 0 0 6 10;
+        TERM muycorto := trian 6 10 14;
+        TERM largo := trape 10 14 20 20;
+        TERM muylargo := trape 10 14 20 20;
+        METHOD : COG;	
+        DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY tiempo_entre_verdes			
+        TERM corto2 := trape 0 0 6 10;
+        TERM muycorto2 := trian 6 10 14;
+        TERM largo2 := trape 10 14 20 20;
+        TERM muylargo2 := trape 10 14 20 20;
+        METHOD : COG;	
+        DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK No1
+        AND : MIN;
+        ACT : MIN;
+        ACCU : MAX;
+
+        RULE 1 : IF (servicio IS pobre) OR (comida IS rancia)
+                THEN propina IS baja;
+        RULE 2 : IF (servicio IS bueno)
+                THEN propina IS promedio; 
+        RULE 3 : IF (servicio IS excelente) OR (comida IS deliciosa)
+                THEN propina IS generosa;
+        RULE 4 : IF (servicio IS pobre) AND (comida IS deliciosa)
+                THEN propina IS promedio;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
